@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>vr nav blocks</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+      'use strict'
+      function cl(x){console.log(x);}
+      
+      AFRAME.registerComponent('button-click', {
+        init: function() {
+          var el = this.el;
+          var btn;
+          var coords = el.getAttribute('position');
+          
+          el.addEventListener('mousedown', function() {
+            var color = el.getAttribute('color');
+            
+            coords.z = "-.5";
+            el.setAttribute('position', coords);
+            el.setAttribute('color', '#FFFFFF');
+            
+            function resetColorMouseup() {
+              coords.z = "0";
+              el.setAttribute('position', coords);
+              if (el.id === "topRight") {
+                el.setAttribute('color', '#FF89CE');
+              } else if (el.id === "centerRight") {
+                el.setAttribute('color', '#0082B2');
+              } else if (el.id === "bottomRight") {
+                el.setAttribute('color', '#26CC10');
+              } else {
+                el.setAttribute('color', color);
+              }
+              el.removeEventListener('mouseup', resetColorMouseup);
+            }
+            
+            el.addEventListener('mouseup', resetColorMouseup);
+            
+          });
+          
+        }
+      });
+      AFRAME.registerComponent('img-click', {
+        init: function() {
+          var el = this.el;
+
+          function openRequest(param) {
+            var img = document.getElementById('imgScreen');
+            var errImg = 'https://cdn.glitch.com/b64a383d-aedb-41dc-92ad-d7b07cd4ca27%2F404%20traffic%20cone.jpg?1520486492478';
+            var imgSrc;
+            var ajax = $.ajax({
+                url: 'https://vr-nav-blocks.glitch.me/:'+param,
+                success: function(data, status, xhr) {
+                  console.log(data);
+                  data.images.length ?
+                    imgSrc = data.images[0].display_sizes[0].uri
+                    :
+                    imgSrc = errImg;
+                  img.setAttribute('src', imgSrc); 
+                },
+                error: function() {
+                  img.setAttribute('src', errImg); 
+                }
+            });
+          }
+
+          el.addEventListener('mousedown', function() {
+            switch(el.id) {
+              case "l" : 
+                openRequest('akureaeaeaeaeeyri');
+                break;
+              case "m" : 
+                openRequest('Hallgrimskirkja');
+                break;
+              case "r" : 
+                openRequest('iceland northern lights');
+                break;
+              default: break;
+             }
+          });      
+          
+        }
+      });
+      AFRAME.registerComponent('env-click', {
+        init: function() {
+          var el = this.el;
+          
+          el.addEventListener('mousedown', function() {
+            var env = document.getElementById('environment');
+            switch(el.id) {
+                // Timeout gives the button-click component time to run the visual click animation
+              case "topLeft" :    setTimeout(function(){env.setAttribute('environment', 'preset', 'starry')}, 500); break;
+              case "centerLeft" : setTimeout(function(){env.setAttribute('environment', 'preset', 'arches');
+                                                        env.setAttribute('environment', 'seed', '2')}, 500); break;
+              case "bottomLeft" : setTimeout(function(){env.setAttribute('environment', 'preset', 'forest')}, 500); break;
+              default: break;
+                        }
+          });          
+        }
+      });
+      AFRAME.registerComponent('color-click', {
+        init: function() {
+          var el = this.el;
+          var blocks = document.getElementsByClassName('blockBorder');
+          var btns = document.getElementsByClassName('blockBtn');
+          var arr = [];
+
+          var greenPink = {
+            border: '#4EEF26',
+            btns: '#FF89CE',
+          };
+          var maroonBlue = {
+            border: '#A01313',
+            btns: '#0082B2',
+
+          };
+          var blackGreen = {
+            border: '#191C26',
+            btns: '#26CC10',
+          };
+          
+          function setColor(palette) {
+
+            // for edge
+            var isEdge = !!window.StyleMedia;
+            
+            // for iOS
+            var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if (!isEdge && !iOS) {
+              for (let block of blocks) {
+                block.setAttribute('color', palette.border);
+              }
+              for (let btn of btns) {
+                btn.setAttribute('color', palette.btns);
+              }
+            } else {
+              // test for typeof == 'object' because last item in arr will be a number value of length
+              for (let block in blocks) {
+                if (typeof blocks[block] == 'object') {
+                  blocks[block].setAttribute('color', palette.border);
+                }
+              }
+
+              for (let btn in btns) {
+                if (typeof btns[btn] == 'object') {
+                  btns[btn].setAttribute('color', palette.btns);
+                }
+              }
+            }
+          }
+
+          el.addEventListener('mousedown', function() {
+            switch(el.id) {
+              case "topRight" :     setColor(greenPink); break;
+              case "centerRight" :  setColor(maroonBlue); break;
+              case "bottomRight" :  setColor(blackGreen); break;
+              default: break;
+            }
+            el.setAttribute('color', '#FFFFFF');
+          }); 
+  
+          
+        }
+      });
+    </script>
+  
+  </head>
+  <body>
+    <a-scene>
+
+      
+      <a-entity id="environment" environment="preset: starry; ground: noise"></a-entity>
+
+      <a-entity camera look-controls wasd-controls position="0 10.5 20">
+        <a-entity cursor="fuse: true"
+                position="0 0 -2"
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: black; shader: flat">
+        </a-entity>  
+      </a-entity>
+ 
+     <a-entity light="type: point; intensity: 1; distance: 0;"
+          position="0 5 5"></a-entity>
+
+      <a-box width="10" height="10" position="0 12 .5" color="yellow">
+        <a-image id="imgScreen" src="https://cdn.glitch.com/b64a383d-aedb-41dc-92ad-d7b07cd4ca27%2Fsun.png?1520486485845" width="9" height="9" position="0 0 .6"></a-image>
+      </a-box>
+      
+      <!-- BOTTTOM BOX -->
+      <a-entity  position="0 4 0">
+            <a-box width="9" height="1.5" depth="2" position="0 0 0" color="#E1F9E0" side="back"></a-box>
+
+            <a-box width="10" height=".25" depth="2" position="0 -.9 0" color="#23201C"></a-box>
+            <a-box width="10" height=".25" depth="2" position="0 .9 0" color="#23201C"></a-box>
+            <a-box width=".5" height="2" depth="2" position="-4.775 0 0" color="#23201C"></a-box>
+            <a-box width=".5" height="2" depth="2" position="4.775 0 0" color="#23201C"></a-box>
+
+            <a-box button-click img-click id="l" width="3" height="1.45" depth="2" position="-3 0 0 " color="#8C8A8B">
+              <a-text value="AKUREYRI" color="black" position="-1 0 1.1" width="10"></a-text>
+            </a-box>
+            <a-box button-click img-click id="m" width="3" height="1.45" depth="2" position="0 0 0 " color="#8C8A8B">
+              <a-text value="HALLGRIMSKIRKJA" color="black" position="-1.5 0 1.1" width="7"></a-text>
+            </a-box>
+            <a-box button-click img-click id="r" width="3" height="1.45" depth="2" position="3 0 0 " color="#8C8A8B">
+              <a-text value="AURORA BOREALIS" color="black" position="-1.5 0 1.1" width="7"></a-text>
+            </a-box>  
+      </a-entity>   
+ 
+      <!-- LEFT BLOCK -->
+      <a-entity position="-8 12 0" rotation="0 0 90">
+          <a-box width="13" height="1.5" depth="2" position="-2 0 0" color="#000000" side="back"></a-box>
+
+          <a-box class="blockBorder" width="14" height=".25" depth="2" position="-2 -.9 0" color="#4EEF26"></a-box>
+          <a-box class="blockBorder" width="14" height=".25" depth="2" position="-2 .9 0" color="#4EEF26"></a-box>
+          <a-box class="blockBorder" width=".5" height="2" depth="2" position="-8.75 0 0" color="#4EEF26"></a-box>
+          <a-box class="blockBorder" width=".5" height="2" depth="2" position="4.775 0 0" color="#4EEF26"></a-box>
+          <a-box button-click env-click class="blockBtn" id="topLeft" width="4.33" height="1.45" depth="2" position="2.33 0 0 " color="#FF89CE">
+            <a-text value="STARS" color="black" position="0 .5 1.1" width="7" rotation="0 0 -90"></a-text>
+          </a-box>
+          <a-box button-click env-click class="blockBtn" id="centerLeft" width="4.33" height="1.45" depth="2" position="-2 0 0" color="#FF89CE">
+            <a-text value="ARCHES" color="black" position="0 .6 1.1" width="7" rotation="0 0 -90"></a-text>
+          </a-box>
+          <a-box button-click env-click class="blockBtn" id="bottomLeft" width="4.33" height="1.45" depth="2" position="-6.33 0 0" color="#FF89CE">
+            <a-text value="FOREST" color="black" position="0 .5 1.1" width="7" rotation="0 0 -90"></a-text>
+          </a-box>  
+
+      </a-entity>  
+
+      <!-- RIGHT BLOCK -->
+      <a-entity position="8 12 0" rotation="0 0 90">
+        <a-box width="13" height="1.5" depth="2" position="-2 0 0" color="#000000" side="back"></a-box>
+
+        <a-box class="blockBorder" width="14" height=".25" depth="2" position="-2 -.9 0" color="#4EEF26"></a-box>
+        <a-box class="blockBorder" width="14" height=".25" depth="2" position="-2 .9 0" color="#4EEF26"></a-box>
+        <a-box class="blockBorder" width=".5" height="2" depth="2" position="-8.75 0 0" color="#4EEF26"></a-box>
+        <a-box class="blockBorder" width=".5" height="2" depth="2" position="4.775 0 0" color="#4EEF26"></a-box>
+
+        <a-box button-click color-click class="blockBtn" id="topRight" width="4.33" height="1.45" depth="2" position="2.33 0 0 " color="#FF89CE"></a-box>
+        <a-box button-click color-click class="blockBtn" id="centerRight" width="4.33" height="1.45" depth="2" position="-2 0 0" color="#FF89CE"></a-box>
+        <a-box button-click color-click class="blockBtn" id="bottomRight" width="4.33" height="1.45" depth="2" position="-6.33 0 0" color="#FF89CE"></a-box>  
+
+    </a-entity>   
+
+      <a-sky color="white"></a-sky>
+    </a-scene>
+  </body>
+</html>
